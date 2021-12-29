@@ -18,6 +18,8 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import java.util.Calendar;
+
 public class MainActivity extends AppCompatActivity {
 
     private Button btnNotify;
@@ -106,7 +108,9 @@ public class MainActivity extends AppCompatActivity {
            editor.putInt("minute", minute);
            editor.apply();
 
-           long futureInMillis = SystemClock.elapsedRealtime() + (interval * 1000);
+          Calendar calendar = Calendar.getInstance();
+          calendar.set(Calendar.HOUR_OF_DAY,hour);
+          calendar.set(Calendar.MINUTE,minute);
 
 
            Intent notificationIntent = new Intent(MainActivity.this,NotificationPublisher.class);
@@ -114,10 +118,10 @@ public class MainActivity extends AppCompatActivity {
            notificationIntent.putExtra(NotificationPublisher.KEY_NOTIFICATION,"Hora de beber água");
 
             PendingIntent broadcast = PendingIntent.getBroadcast(MainActivity.this, 0,
-                    notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
-            alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP,futureInMillis, broadcast);
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,calendar.getTimeInMillis(),interval  * 1000 * 60, broadcast);
         }
         else{
             btnNotify.setText(R.string.notify);
@@ -131,6 +135,15 @@ public class MainActivity extends AppCompatActivity {
             editor.remove("hour");
             editor.remove("minute");
             editor.apply();
+
+
+            Intent notificationIntent = new Intent(MainActivity.this,NotificationPublisher.class);
+
+            PendingIntent broadcast = PendingIntent.getBroadcast(MainActivity.this, 0,
+                    notificationIntent,0);
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            alarmManager.cancel(broadcast);
+
         }
        Log.d("Teste", "hora: " + hour + " minutos: " + minute +  " intervalo: " + interval);
     }
